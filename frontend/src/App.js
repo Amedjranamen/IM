@@ -57,29 +57,13 @@ const Home = () => {
     setSearchTerm("");
   };
 
-  const handleLike = (propertyId, isLiked) => {
-    setProperties(prev => 
-      prev.map(property => 
-        property.id === propertyId 
-          ? { ...property, likes: isLiked ? property.likes + 1 : property.likes - 1 }
-          : property
-      )
-    );
-
-    toast({
-      description: isLiked ? "Ajouté aux favoris" : "Retiré des favoris",
-      duration: 2000,
-    });
+  const handleLike = async (propertyId, isLiked) => {
+    await likeProperty(propertyId, isLiked);
   };
 
   const handleViewDetails = (propertyId) => {
     const property = properties.find(p => p.id === propertyId);
     setSelectedProperty(property);
-    
-    toast({
-      description: `Détails de "${property.title}"`,
-      duration: 2000,
-    });
   };
 
   const handlePropertySelect = (propertyId) => {
