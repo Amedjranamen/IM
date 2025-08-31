@@ -213,6 +213,8 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/publish" element={<PublishPage />} />
+            <Route path="/property/:id" element={<PropertyDetailsPage />} />
           </Routes>
         </BrowserRouter>
         <Toaster />
