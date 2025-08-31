@@ -7,6 +7,7 @@ import PropertyDetails from "./components/PropertyDetails";
 import PropertyForm from "./components/PropertyForm";
 import FilterSidebar from "./components/FilterSidebar";
 import MapView from "./components/MapView";
+import MapSearch from "./components/MapSearch";
 import { Toaster } from "./components/ui/toaster";
 import { AppProvider, useApp } from "./contexts/AppContext";
 
