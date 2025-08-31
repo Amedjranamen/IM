@@ -241,6 +241,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/publish" element={<PublishPage />} />
             <Route path="/property/:id" element={<PropertyDetailsPage />} />
+            <Route path="/account" element={<AccountPageWrapper />} />
+            <Route path="/favorites" element={<FavoritesPageWrapper />} />
           </Routes>
         </BrowserRouter>
         <Toaster />
