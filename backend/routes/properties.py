@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
-from ..models import Property, PropertyCreate, PropertyUpdate, LikeRequest
-from ..database import Database
+from models import Property, PropertyCreate, PropertyUpdate, LikeRequest
+from database import Database
 from datetime import datetime
 import uuid
 
