@@ -22,70 +22,27 @@ const Home = () => {
   const [showMap, setShowMap] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
 
+  // Charger les propriétés au démarrage
+  useEffect(() => {
+    loadProperties();
+  }, [loadProperties]);
+
+  // Recharger les propriétés quand les filtres ou la recherche changent
+  useEffect(() => {
+    const searchFilters = {};
+    
+    if (searchTerm) {
+      searchFilters.search = searchTerm;
+    }
+    
+    const combinedFilters = { ...filters, ...searchFilters };
+    loadProperties(combinedFilters);
+  }, [searchTerm, filters, loadProperties]);
+
   // Shuffle properties for random feed
   const shuffledProperties = useMemo(() => {
-    return [...filteredProperties].sort(() => Math.random() - 0.5);
-  }, [filteredProperties]);
-
-  // Filter properties based on search and filters
-  useEffect(() => {
-    let filtered = properties;
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(property =>
-        property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.location.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.location.neighborhood.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply filters
-    if (filters.type && filters.type !== 'all') {
-      filtered = filtered.filter(property => property.type === filters.type);
-    }
-
-    if (filters.city && filters.city !== 'all') {
-      filtered = filtered.filter(property => property.location.city === filters.city);
-    }
-
-    if (filters.neighborhood && filters.neighborhood !== 'all') {
-      filtered = filtered.filter(property => property.location.neighborhood === filters.neighborhood);
-    }
-
-    if (filters.category && filters.category !== 'all') {
-      filtered = filtered.filter(property => property.category === filters.category);
-    }
-
-    if (filters.minPrice) {
-      filtered = filtered.filter(property => property.price >= parseInt(filters.minPrice));
-    }
-
-    if (filters.maxPrice) {
-      filtered = filtered.filter(property => property.price <= parseInt(filters.maxPrice));
-    }
-
-    if (filters.bedrooms && filters.bedrooms !== 'all') {
-      filtered = filtered.filter(property => property.bedrooms >= parseInt(filters.bedrooms));
-    }
-
-    if (filters.minArea) {
-      filtered = filtered.filter(property => property.area >= parseInt(filters.minArea));
-    }
-
-    if (filters.maxArea) {
-      filtered = filtered.filter(property => property.area <= parseInt(filters.maxArea));
-    }
-
-    if (filters.features && filters.features.length > 0) {
-      filtered = filtered.filter(property =>
-        filters.features.some(feature => property.features.includes(feature))
-      );
-    }
-
-    setFilteredProperties(filtered);
-  }, [searchTerm, filters, properties]);
+    return [...properties].sort(() => Math.random() - 0.5);
+  }, [properties]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
