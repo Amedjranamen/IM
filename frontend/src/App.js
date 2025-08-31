@@ -117,6 +117,8 @@ const Home = () => {
         onShowMap={() => setShowMap(!showMap)}
         onPublish={handlePublish}
         onAdvancedSearch={handleAdvancedSearch}
+        onAccount={handleAccount}
+        onFavorites={handleFavorites}
         showMap={showMap}
       />
 
