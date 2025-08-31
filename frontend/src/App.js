@@ -189,6 +189,19 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* Property Details Modal */}
+      {showPropertyDetails && selectedProperty && (
+        <PropertyDetails
+          property={selectedProperty}
+          onClose={() => {
+            setShowPropertyDetails(false);
+            setSelectedProperty(null);
+          }}
+          onEdit={handleEditProperty}
+          onDelete={handleDeleteProperty}
+        />
+      )}
     </div>
   );
 };
