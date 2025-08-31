@@ -62,12 +62,20 @@ const Header = ({ onSearch, onShowMap, onPublish, onAdvancedSearch, onAccount, o
               {showMap ? 'Liste' : 'Carte'}
             </Button>
             
-            <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
+            <Button 
+              variant="ghost" 
+              className="text-gray-700 hover:text-orange-600"
+              onClick={onFavorites}
+            >
               <Heart className="h-4 w-4 mr-2" />
               Favoris
             </Button>
             
-            <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
+            <Button 
+              variant="ghost" 
+              className="text-gray-700 hover:text-orange-600"
+              onClick={onAccount}
+            >
               <User className="h-4 w-4 mr-2" />
               Mon compte
             </Button>
