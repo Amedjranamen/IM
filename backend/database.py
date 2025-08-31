@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List
 import os
 from datetime import datetime
-from .models import Property, Comment, CityModel
+from models import Property, Comment, CityModel
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
