@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import PropertyCard from "./components/PropertyCard";
+import PropertyDetails from "./components/PropertyDetails";
+import PropertyForm from "./components/PropertyForm";
 import FilterSidebar from "./components/FilterSidebar";
 import MapView from "./components/MapView";
 import { Toaster } from "./components/ui/toaster";
