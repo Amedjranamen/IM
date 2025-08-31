@@ -26,6 +26,7 @@ const Home = () => {
   const [showMap, setShowMap] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const navigate = useNavigate();
 
   // Charger les propriétés au démarrage
