@@ -120,11 +120,19 @@ const Header = ({ onSearch, onShowMap, onPublish, onAdvancedSearch, onAccount, o
                 <MapPin className="h-4 w-4 mr-2" />
                 {showMap ? 'Vue Liste' : 'Vue Carte'}
               </Button>
-              <Button variant="ghost" className="text-left justify-start">
+              <Button 
+                variant="ghost" 
+                className="text-left justify-start"
+                onClick={onFavorites}
+              >
                 <Heart className="h-4 w-4 mr-2" />
                 Mes Favoris
               </Button>
-              <Button variant="ghost" className="text-left justify-start">
+              <Button 
+                variant="ghost" 
+                className="text-left justify-start"
+                onClick={onAccount}
+              >
                 <User className="h-4 w-4 mr-2" />
                 Mon Compte
               </Button>
