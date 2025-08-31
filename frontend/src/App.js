@@ -62,7 +62,7 @@ const Home = () => {
       filtered = filtered.filter(property => property.price <= parseInt(filters.maxPrice));
     }
 
-    if (filters.bedrooms) {
+    if (filters.bedrooms && filters.bedrooms !== 'all') {
       filtered = filtered.filter(property => property.bedrooms >= parseInt(filters.bedrooms));
     }
 
