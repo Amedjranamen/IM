@@ -151,6 +151,33 @@ const PropertyForm = ({ property = null, onSubmit, onCancel }) => {
     }
   };
 
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    try {
+      for (const file of files) {
+        // Convert file to base64 or handle file upload
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageDataUrl = e.target.result;
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, imageDataUrl]
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'upload:', error);
+    } finally {
+      setUploading(false);
+      // Clear the input
+      event.target.value = '';
+    }
+  };
+
   const removeImage = (imageUrl) => {
     setFormData(prev => ({
       ...prev,
