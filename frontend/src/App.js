@@ -332,6 +332,8 @@ const PropertyDetailsPage = () => {
         onShowMap={() => {}}
         onPublish={() => navigate('/publish')}
         onAdvancedSearch={() => {}}
+        onAccount={() => navigate('/account')}
+        onFavorites={() => navigate('/favorites')}
         showMap={false}
       />
       <PropertyDetails
