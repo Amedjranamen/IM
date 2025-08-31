@@ -5,8 +5,13 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
 const PropertyCard = ({ property, onLike, onViewDetails }) => {
-  const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(property.likes);
+  
+  // Vérifier si la propriété est en favoris au démarrage
+  const [isLiked, setIsLiked] = useState(() => {
+    const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    return savedFavorites.includes(property.id);
+  });
 
   const handleLike = () => {
     setIsLiked(!isLiked);
