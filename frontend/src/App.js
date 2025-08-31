@@ -38,19 +38,19 @@ const Home = () => {
     }
 
     // Apply filters
-    if (filters.type) {
+    if (filters.type && filters.type !== 'all') {
       filtered = filtered.filter(property => property.type === filters.type);
     }
 
-    if (filters.city) {
+    if (filters.city && filters.city !== 'all') {
       filtered = filtered.filter(property => property.location.city === filters.city);
     }
 
-    if (filters.neighborhood) {
+    if (filters.neighborhood && filters.neighborhood !== 'all') {
       filtered = filtered.filter(property => property.location.neighborhood === filters.neighborhood);
     }
 
-    if (filters.category) {
+    if (filters.category && filters.category !== 'all') {
       filtered = filtered.filter(property => property.category === filters.category);
     }
 
