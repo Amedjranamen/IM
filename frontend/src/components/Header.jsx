@@ -63,7 +63,10 @@ const Header = ({ onSearch, onShowMap, onPublish, showMap }) => {
               Mon compte
             </Button>
             
-            <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+            <Button 
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+              onClick={onPublish}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Publier
             </Button>
