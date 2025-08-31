@@ -413,6 +413,134 @@ class IMOCOBackendTester:
         except Exception as e:
             self.log_test("Delete Property", False, f"Error: {str(e)}")
             return False
+
+    def test_comment_system_comprehensive(self):
+        """Comprehensive test of the comment system as requested"""
+        try:
+            # Step 1: Get an existing property ID
+            response = self.session.get(f"{self.base_url}/properties")
+            if response.status_code != 200:
+                self.log_test("Comment System - Get Property", False, "Could not retrieve properties")
+                return False
+            
+            properties = response.json()
+            if not properties:
+                self.log_test("Comment System - Get Property", False, "No properties available")
+                return False
+            
+            property_id = properties[0]["id"]
+            property_title = properties[0].get("title", "Unknown Property")
+            self.log_test("Comment System - Get Property", True, f"Using property: {property_title}")
+            
+            # Step 2: Create the first comment as requested
+            comment_data_1 = {
+                "property_id": property_id,
+                "author": "Marie Testeur",
+                "content": "Excellent bien immobilier, très bien situé !"
+            }
+            
+            response = self.session.post(f"{self.base_url}/comments", json=comment_data_1)
+            if response.status_code != 200:
+                self.log_test("Comment System - Create Comment 1", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            comment_1 = response.json()
+            if (comment_1.get("property_id") != property_id or 
+                comment_1.get("author") != "Marie Testeur" or
+                comment_1.get("content") != "Excellent bien immobilier, très bien situé !"):
+                self.log_test("Comment System - Create Comment 1", False, "Comment data mismatch")
+                return False
+            
+            self.log_test("Comment System - Create Comment 1", True, 
+                        f"Comment created by Marie Testeur: {comment_1.get('id')}")
+            
+            # Step 3: Create additional comments for the same property
+            additional_comments = [
+                {
+                    "property_id": property_id,
+                    "author": "Jean Mbongo",
+                    "content": "Propriété intéressante, j'aimerais avoir plus d'informations sur le quartier."
+                },
+                {
+                    "property_id": property_id,
+                    "author": "Sylvie Ondo",
+                    "content": "Belle maison ! Le prix est-il négociable ? Merci."
+                },
+                {
+                    "property_id": property_id,
+                    "author": "Paul Nguema",
+                    "content": "Magnifique propriété ! Quand peut-on organiser une visite ?"
+                }
+            ]
+            
+            created_comments = [comment_1]
+            
+            for i, comment_data in enumerate(additional_comments, 2):
+                response = self.session.post(f"{self.base_url}/comments", json=comment_data)
+                if response.status_code != 200:
+                    self.log_test(f"Comment System - Create Comment {i}", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    return False
+                
+                comment = response.json()
+                created_comments.append(comment)
+                self.log_test(f"Comment System - Create Comment {i}", True, 
+                            f"Comment created by {comment_data['author']}: {comment.get('id')}")
+            
+            # Step 4: Retrieve all comments for the property
+            response = self.session.get(f"{self.base_url}/comments/property/{property_id}")
+            if response.status_code != 200:
+                self.log_test("Comment System - Retrieve Comments", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            retrieved_comments = response.json()
+            
+            # Step 5: Verify all comments are retrieved
+            if len(retrieved_comments) < len(created_comments):
+                self.log_test("Comment System - Retrieve Comments", False, 
+                            f"Expected at least {len(created_comments)} comments, got {len(retrieved_comments)}")
+                return False
+            
+            # Verify the specific comment from Marie Testeur exists
+            marie_comment = None
+            for comment in retrieved_comments:
+                if (comment.get("author") == "Marie Testeur" and 
+                    "Excellent bien immobilier" in comment.get("content", "")):
+                    marie_comment = comment
+                    break
+            
+            if not marie_comment:
+                self.log_test("Comment System - Verify Marie's Comment", False, 
+                            "Marie Testeur's comment not found in retrieved comments")
+                return False
+            
+            # Step 6: Verify comment data integrity
+            required_fields = ["id", "property_id", "author", "content", "created_at"]
+            for comment in retrieved_comments:
+                for field in required_fields:
+                    if field not in comment:
+                        self.log_test("Comment System - Data Integrity", False, 
+                                    f"Missing field '{field}' in comment")
+                        return False
+            
+            self.log_test("Comment System - Retrieve Comments", True, 
+                        f"Successfully retrieved {len(retrieved_comments)} comments for property")
+            self.log_test("Comment System - Verify Marie's Comment", True, 
+                        f"Marie Testeur's comment found with correct content")
+            self.log_test("Comment System - Data Integrity", True, 
+                        "All comments have required fields (id, property_id, author, content, created_at)")
+            
+            # Summary
+            self.log_test("Comment System - COMPREHENSIVE TEST", True, 
+                        f"✅ All comment system tests passed: Created {len(created_comments)} comments, retrieved {len(retrieved_comments)} comments, verified data integrity")
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Comment System - COMPREHENSIVE TEST", False, f"Error: {str(e)}")
+            return False
     
     def run_all_tests(self):
         """Run all backend tests"""
