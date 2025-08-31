@@ -3,7 +3,7 @@ import { Search, Menu, Heart, User, Plus, MapPin, Filter } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
-const Header = ({ onSearch, onShowMap, onPublish, showMap }) => {
+const Header = ({ onSearch, onShowMap, onPublish, onAdvancedSearch, showMap }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
