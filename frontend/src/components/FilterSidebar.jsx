@@ -66,7 +66,7 @@ const FilterSidebar = ({ filters, onFiltersChange, onClear, className = "" }) =>
                 <SelectValue placeholder="Tous les types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
+                <SelectItem value="all">Tous les types</SelectItem>
                 <SelectItem value="sale">Vente</SelectItem>
                 <SelectItem value="rent">Location</SelectItem>
               </SelectContent>
