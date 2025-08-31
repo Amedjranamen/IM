@@ -135,13 +135,11 @@ const FilterSidebar = ({ filters, onFiltersChange, onClear, className = "" }) =>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les quartiers</SelectItem>
-                  {mockCities
-                    .find(city => city.name === filters.city)
-                    ?.neighborhoods.map(neighborhood => (
-                      <SelectItem key={neighborhood} value={neighborhood}>
-                        {neighborhood}
-                      </SelectItem>
-                    ))}
+                  {neighborhoods.map(neighborhood => (
+                    <SelectItem key={neighborhood} value={neighborhood}>
+                      {neighborhood}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
