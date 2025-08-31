@@ -103,7 +103,10 @@ const Header = ({ onSearch, onShowMap, onPublish, showMap }) => {
                 <User className="h-4 w-4 mr-2" />
                 Mon Compte
               </Button>
-              <Button className="bg-orange-600 hover:bg-orange-700 text-white justify-start">
+              <Button 
+                className="bg-orange-600 hover:bg-orange-700 text-white justify-start"
+                onClick={onPublish}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Publier une annonce
               </Button>
