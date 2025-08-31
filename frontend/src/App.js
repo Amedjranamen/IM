@@ -315,6 +315,7 @@ const PropertyDetailsPage = () => {
         onSearch={() => {}}
         onShowMap={() => {}}
         onPublish={() => navigate('/publish')}
+        onAdvancedSearch={() => {}}
         showMap={false}
       />
       <PropertyDetails
