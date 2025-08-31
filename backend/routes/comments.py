@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from ..models import Comment, CommentCreate
-from ..database import Database
+from models import Comment, CommentCreate
+from database import Database
 from datetime import datetime
 import uuid
 
