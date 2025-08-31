@@ -98,6 +98,14 @@ const Header = ({ onSearch, onShowMap, onPublish, onAdvancedSearch, showMap }) =
             <div className="flex flex-col space-y-2">
               <Button
                 variant="ghost"
+                onClick={onAdvancedSearch}
+                className="text-left justify-start"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Recherche avancée
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={onShowMap}
                 className="text-left justify-start"
               >
