@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Menu, Heart, User, Plus, MapPin } from 'lucide-react';
+import { Search, Menu, Heart, User, Plus, MapPin, Filter } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
