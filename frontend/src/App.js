@@ -8,6 +8,8 @@ import PropertyForm from "./components/PropertyForm";
 import FilterSidebar from "./components/FilterSidebar";
 import MapView from "./components/MapView";
 import MapSearch from "./components/MapSearch";
+import AccountPage from "./components/AccountPage";
+import FavoritesPage from "./components/FavoritesPage";
 import { Toaster } from "./components/ui/toaster";
 import { AppProvider, useApp } from "./contexts/AppContext";
 
