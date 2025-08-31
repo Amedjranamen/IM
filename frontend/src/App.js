@@ -197,6 +197,13 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Advanced Search Modal */}
+      {showAdvancedSearch && (
+        <MapSearch
+          onClose={() => setShowAdvancedSearch(false)}
+        />
+      )}
+
       {/* Property Details Modal */}
       {showPropertyDetails && selectedProperty && (
         <PropertyDetails
