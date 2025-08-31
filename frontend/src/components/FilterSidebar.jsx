@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -6,10 +6,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from './ui/checkbox';
 import { Slider } from './ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { mockCities, mockCategories, mockFeatures } from '../data/mock';
+import { useApp } from '../contexts/AppContext';
+
+// Données statiques pour les catégories et équipements
+const mockCategories = ['Villa', 'Maison', 'Appartement', 'Studio', 'Terrain', 'Bureau', 'Commerce'];
+const mockFeatures = [
+  'Climatisation', 'Jardin', 'Parking', 'Sécurité', 'Piscine', 'Garage', 
+  'Balcon', 'Ascenseur', 'Meublé', 'WiFi', 'Véranda', 'Portail électrique',
+  'Viabilisé', 'Titre foncier', 'Zone résidentielle', 'Accès bitumé',
+  'Charges incluses'
+];
 
 const FilterSidebar = ({ filters, onFiltersChange, onClear, className = "" }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [neighborhoods, setNeighborhoods] = useState([]);
+  const { cities, getNeighborhoods } = useApp();
+
+  // Charger les quartiers quand la ville change
+  useEffect(() => {
+    if (filters.city && filters.city !== 'all') {
+      loadNeighborhoods(filters.city);
+    } else {
+      setNeighborhoods([]);
+    }
+  }, [filters.city, getNeighborhoods]);
+
+  const loadNeighborhoods = async (city) => {
+    try {
+      const cityNeighborhoods = await getNeighborhoods(city);
+      setNeighborhoods(cityNeighborhoods);
+    } catch (error) {
+      console.error('Erreur lors du chargement des quartiers:', error);
+      setNeighborhoods([]);
+    }
+  };
 
   const handleFilterChange = (key, value) => {
     onFiltersChange({ ...filters, [key]: value });
