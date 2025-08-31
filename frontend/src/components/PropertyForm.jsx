@@ -386,17 +386,54 @@ const PropertyForm = ({ property = null, onSubmit, onCancel }) => {
             <div>
               <Label>Images</Label>
               <div className="space-y-4">
-                <div className="flex space-x-2">
-                  <Input
-                    type="url"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="URL de l'image"
-                  />
-                  <Button type="button" onClick={addImage} variant="outline">
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                {/* Upload depuis l'appareil */}
+                <div className="flex flex-col space-y-2">
+                  <Label htmlFor="image-upload" className="text-sm text-gray-600">
+                    Charger depuis votre appareil
+                  </Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('image-upload').click()}
+                      disabled={uploading}
+                      className="flex items-center"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? 'Chargement...' : 'Choisir des images'}
+                    </Button>
+                    <span className="text-sm text-gray-500">
+                      (JPG, PNG, WebP acceptés)
+                    </span>
+                  </div>
                 </div>
+
+                {/* Ou ajouter par URL */}
+                <div className="flex flex-col space-y-2">
+                  <Label className="text-sm text-gray-600">
+                    Ou ajouter par URL
+                  </Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="url"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      placeholder="URL de l'image"
+                    />
+                    <Button type="button" onClick={addImage} variant="outline">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
                 {formData.images.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {formData.images.map((imageUrl, index) => (
