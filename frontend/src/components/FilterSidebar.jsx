@@ -104,7 +104,7 @@ const FilterSidebar = ({ filters, onFiltersChange, onClear, className = "" }) =>
                   <SelectValue placeholder="Tous les quartiers" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les quartiers</SelectItem>
+                  <SelectItem value="all">Tous les quartiers</SelectItem>
                   {mockCities
                     .find(city => city.name === filters.city)
                     ?.neighborhoods.map(neighborhood => (
