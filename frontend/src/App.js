@@ -258,6 +258,7 @@ const PublishPage = () => {
         onSearch={() => {}}
         onShowMap={() => {}}
         onPublish={() => navigate('/publish')}
+        onAdvancedSearch={() => {}}
         showMap={false}
       />
       <PropertyForm
