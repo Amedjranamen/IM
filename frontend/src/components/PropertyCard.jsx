@@ -119,7 +119,7 @@ const PropertyCard = ({ property, onLike, onViewDetails }) => {
               </div>
               <div className="flex items-center">
                 <MessageCircle className="h-4 w-4 mr-1" />
-                <span>{property.comments.length}</span>
+                <span>{property.comments?.length || 0}</span>
               </div>
             </div>
             <span className="text-xs">
