@@ -86,6 +86,14 @@ const Home = () => {
     navigate('/publish');
   };
 
+  const handleAccount = () => {
+    navigate('/account');
+  };
+
+  const handleFavorites = () => {
+    navigate('/favorites');
+  };
+
   const handleAdvancedSearch = () => {
     setShowAdvancedSearch(true);
   };
