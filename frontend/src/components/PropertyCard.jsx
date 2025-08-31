@@ -14,9 +14,26 @@ const PropertyCard = ({ property, onLike, onViewDetails }) => {
   });
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes(isLiked ? likes - 1 : likes + 1);
-    onLike(property.id, !isLiked);
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    setLikes(newLikedState ? likes + 1 : likes - 1);
+    
+    // Mettre à jour localStorage
+    const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    if (newLikedState) {
+      if (!savedFavorites.includes(property.id)) {
+        savedFavorites.push(property.id);
+      }
+    } else {
+      const index = savedFavorites.indexOf(property.id);
+      if (index > -1) {
+        savedFavorites.splice(index, 1);
+      }
+    }
+    localStorage.setItem('favorites', JSON.stringify(savedFavorites));
+    
+    // Appeler la fonction parent
+    onLike(property.id, newLikedState);
   };
 
   const formatPrice = (price) => {
