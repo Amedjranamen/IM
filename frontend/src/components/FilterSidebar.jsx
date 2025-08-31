@@ -168,7 +168,7 @@ const FilterSidebar = ({ filters, onFiltersChange, onClear, className = "" }) =>
                 <SelectValue placeholder="Nombre de chambres" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes</SelectItem>
+                <SelectItem value="all">Toutes</SelectItem>
                 <SelectItem value="1">1+</SelectItem>
                 <SelectItem value="2">2+</SelectItem>
                 <SelectItem value="3">3+</SelectItem>
