@@ -5,18 +5,22 @@ import Header from "./components/Header";
 import PropertyCard from "./components/PropertyCard";
 import FilterSidebar from "./components/FilterSidebar";
 import MapView from "./components/MapView";
-import { mockProperties } from "./data/mock";
 import { Toaster } from "./components/ui/toaster";
-import { useToast } from "./hooks/use-toast";
+import { AppProvider, useApp } from "./contexts/AppContext";
 
 const Home = () => {
-  const [properties, setProperties] = useState(mockProperties);
-  const [filteredProperties, setFilteredProperties] = useState(mockProperties);
+  const { 
+    properties, 
+    loading, 
+    error, 
+    loadProperties, 
+    likeProperty 
+  } = useApp();
+  
   const [filters, setFilters] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [showMap, setShowMap] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
-  const { toast } = useToast();
 
   // Shuffle properties for random feed
   const shuffledProperties = useMemo(() => {
