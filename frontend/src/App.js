@@ -99,6 +99,7 @@ const Home = () => {
       <Header 
         onSearch={handleSearch}
         onShowMap={() => setShowMap(!showMap)}
+        onPublish={handlePublish}
         showMap={showMap}
       />
 
