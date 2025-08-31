@@ -46,6 +46,15 @@ const Header = ({ onSearch, onShowMap, onPublish, onAdvancedSearch, showMap }) =
           <div className="hidden md:flex items-center space-x-4">
             <Button
               variant="ghost"
+              onClick={onAdvancedSearch}
+              className="text-gray-700 hover:text-orange-600"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Recherche avancée
+            </Button>
+            
+            <Button
+              variant="ghost"
               onClick={onShowMap}
               className="text-gray-700 hover:text-orange-600"
             >
