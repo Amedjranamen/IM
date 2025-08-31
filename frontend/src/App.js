@@ -346,4 +346,34 @@ const PropertyDetailsPage = () => {
   );
 };
 
+// Page de compte
+const AccountPageWrapper = () => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate('/');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AccountPage onBack={handleBack} />
+    </div>
+  );
+};
+
+// Page des favoris
+const FavoritesPageWrapper = () => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate('/');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <FavoritesPage onBack={handleBack} />
+    </div>
+  );
+};
+
 export default App;
