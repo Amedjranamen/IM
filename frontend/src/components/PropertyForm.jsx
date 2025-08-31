@@ -41,6 +41,7 @@ const PropertyForm = ({ property = null, onSubmit, onCancel }) => {
 
   const [newFeature, setNewFeature] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const categories = ['Villa', 'Maison', 'Appartement', 'Studio', 'Terrain', 'Bureau', 'Commerce'];
   const commonFeatures = [
