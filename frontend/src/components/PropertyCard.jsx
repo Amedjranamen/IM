@@ -28,7 +28,7 @@ const PropertyCard = ({ property, onLike, onViewDetails }) => {
         {/* Property Image */}
         <div className="relative h-48 overflow-hidden rounded-t-lg">
           <img
-            src={property.images[0]}
+            src={property.images?.[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop'}
             alt={property.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onClick={() => onViewDetails(property.id)}
