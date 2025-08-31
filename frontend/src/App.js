@@ -221,4 +221,93 @@ function App() {
   );
 }
 
+// Page de publication de propriété
+const PublishPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const property = location.state?.property; // Pour l'édition
+
+  const handleSubmit = (newProperty) => {
+    // Rediriger vers la page d'accueil après soumission
+    navigate('/');
+  };
+
+  const handleCancel = () => {
+    navigate('/');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        onSearch={() => {}}
+        onShowMap={() => {}}
+        onPublish={() => navigate('/publish')}
+        showMap={false}
+      />
+      <PropertyForm
+        property={property}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+      />
+    </div>
+  );
+};
+
+// Page de détails de propriété (route séparée)
+const PropertyDetailsPage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { properties, deleteProperty } = useApp();
+  const [property, setProperty] = useState(null);
+
+  useEffect(() => {
+    const foundProperty = properties.find(p => p.id === id);
+    setProperty(foundProperty);
+  }, [id, properties]);
+
+  const handleEditProperty = (prop) => {
+    navigate('/publish', { state: { property: prop } });
+  };
+
+  const handleDeleteProperty = async (propertyId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette propriété ?')) {
+      await deleteProperty(propertyId);
+      navigate('/');
+    }
+  };
+
+  if (!property) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 text-lg">Propriété non trouvée</p>
+          <button 
+            onClick={() => navigate('/')}
+            className="mt-4 text-blue-600 hover:underline"
+          >
+            Retour à l'accueil
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        onSearch={() => {}}
+        onShowMap={() => {}}
+        onPublish={() => navigate('/publish')}
+        showMap={false}
+      />
+      <PropertyDetails
+        property={property}
+        onClose={() => navigate('/')}
+        onEdit={handleEditProperty}
+        onDelete={handleDeleteProperty}
+      />
+    </div>
+  );
+};
+
 export default App;
