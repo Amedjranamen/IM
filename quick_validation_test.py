@@ -8,7 +8,7 @@ import requests
 import json
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://immo-finder-gabon.preview.emergentagent.com/api"
+BACKEND_URL = "https://image-upload-fix-3.preview.emergentagent.com/api"
 
 def test_api_health():
     """Test 1: API Health Check (/api/)"""
