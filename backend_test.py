@@ -12,7 +12,7 @@ import os
 import sys
 
 # Get the backend URL from frontend environment
-BACKEND_URL = "https://immoco-gabon.preview.emergentagent.com/api"
+BACKEND_URL = "https://immo-finder-gabon.preview.emergentagent.com/api"
 
 class IMOCOBackendTester:
     def __init__(self):
