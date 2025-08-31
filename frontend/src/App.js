@@ -106,6 +106,7 @@ const Home = () => {
         onSearch={handleSearch}
         onShowMap={() => setShowMap(!showMap)}
         onPublish={handlePublish}
+        onAdvancedSearch={handleAdvancedSearch}
         showMap={showMap}
       />
 
