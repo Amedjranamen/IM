@@ -84,6 +84,10 @@ const Home = () => {
     navigate('/publish');
   };
 
+  const handleAdvancedSearch = () => {
+    setShowAdvancedSearch(true);
+  };
+
   const handleEditProperty = (property) => {
     navigate('/publish', { state: { property } });
   };
