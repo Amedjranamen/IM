@@ -16,13 +16,16 @@ const Home = () => {
     loading, 
     error, 
     loadProperties, 
-    likeProperty 
+    likeProperty,
+    deleteProperty
   } = useApp();
   
   const [filters, setFilters] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [showMap, setShowMap] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [showPropertyDetails, setShowPropertyDetails] = useState(false);
+  const navigate = useNavigate();
 
   // Charger les propriétés au démarrage
   useEffect(() => {
@@ -66,11 +69,29 @@ const Home = () => {
   const handleViewDetails = (propertyId) => {
     const property = properties.find(p => p.id === propertyId);
     setSelectedProperty(property);
+    setShowPropertyDetails(true);
   };
 
   const handlePropertySelect = (propertyId) => {
     const property = properties.find(p => p.id === propertyId);
     setSelectedProperty(property);
+    setShowPropertyDetails(true);
+  };
+
+  const handlePublish = () => {
+    navigate('/publish');
+  };
+
+  const handleEditProperty = (property) => {
+    navigate('/publish', { state: { property } });
+  };
+
+  const handleDeleteProperty = async (propertyId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette propriété ?')) {
+      await deleteProperty(propertyId);
+      setShowPropertyDetails(false);
+      setSelectedProperty(null);
+    }
   };
 
   return (
