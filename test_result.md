@@ -361,3 +361,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Application de base fonctionnelle avec auth, CRUD listings, comments, likes. Prêt à ajouter fonctionnalités cartographiques et recherche avancée."
+  - agent: "main"
+    message: "REFONTE COMPLETE: Design identique à la maquette, upload images/vidéos (max 10), favoris, gestion profil utilisateur, suppression emojis, hero section avec image de fond. Toutes les fonctionnalités demandées implémentées. Prêt pour tests complets."
