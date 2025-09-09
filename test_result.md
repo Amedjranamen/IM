@@ -253,16 +253,19 @@ frontend:
         comment: "Complete redesign with Leaflet integration, map views, marker placement working perfectly"
 
   - task: "Advanced search interface"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Need advanced search form with filters"
+      - working: true
+        agent: "main"
+        comment: "Complete redesign with sidebar filters, all filter types implemented (price, surface, rooms, etc.)"
 
   - task: "Map-based publishing"
     implemented: false
