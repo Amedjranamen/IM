@@ -201,18 +201,89 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 # Listings endpoints
 @api_router.get("/listings", response_model=List[Listing])
-async def get_listings(random_order: bool = True, limit: int = 20, skip: int = 0):
+async def get_listings(
+    random_order: bool = True, 
+    limit: int = 20, 
+    skip: int = 0,
+    search: Optional[str] = Query(None, description="Search in title and description"),
+    city: Optional[str] = Query(None, description="Filter by city"),
+    neighborhood: Optional[str] = Query(None, description="Filter by neighborhood"),
+    listing_type: Optional[str] = Query(None, description="Filter by type: sale or rent"),
+    price_min: Optional[float] = Query(None, description="Minimum price"),
+    price_max: Optional[float] = Query(None, description="Maximum price"),
+    surface_min: Optional[int] = Query(None, description="Minimum surface"),
+    surface_max: Optional[int] = Query(None, description="Maximum surface"),
+    rooms_min: Optional[int] = Query(None, description="Minimum rooms"),
+    rooms_max: Optional[int] = Query(None, description="Maximum rooms"),
+    lat: Optional[float] = Query(None, description="Latitude for radius search"),
+    lon: Optional[float] = Query(None, description="Longitude for radius search"),
+    radius: Optional[float] = Query(None, description="Radius in km for geo search")
+):
+    # Build the filter query
+    filter_query = {"is_published": True}
+    
+    # Text search
+    if search:
+        filter_query["$or"] = [
+            {"title": {"$regex": search, "$options": "i"}},
+            {"description": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Location filters
+    if city:
+        filter_query["city"] = {"$regex": city, "$options": "i"}
+    if neighborhood:
+        filter_query["neighborhood"] = {"$regex": neighborhood, "$options": "i"}
+    
+    # Type filter
+    if listing_type:
+        filter_query["listing_type"] = listing_type
+    
+    # Price filters
+    if price_min is not None:
+        filter_query["price"] = {"$gte": price_min}
+    if price_max is not None:
+        if "price" in filter_query:
+            filter_query["price"]["$lte"] = price_max
+        else:
+            filter_query["price"] = {"$lte": price_max}
+    
+    # Surface filters
+    if surface_min is not None:
+        filter_query["surface"] = {"$gte": surface_min}
+    if surface_max is not None:
+        if "surface" in filter_query:
+            filter_query["surface"]["$lte"] = surface_max
+        else:
+            filter_query["surface"] = {"$lte": surface_max}
+    
+    # Rooms filters
+    if rooms_min is not None:
+        filter_query["rooms"] = {"$gte": rooms_min}
+    if rooms_max is not None:
+        if "rooms" in filter_query:
+            filter_query["rooms"]["$lte"] = rooms_max
+        else:
+            filter_query["rooms"] = {"$lte": rooms_max}
+    
+    # Geo search (simplified - for production use proper geo queries)
+    if lat is not None and lon is not None and radius is not None:
+        # Simple bounding box calculation (approximate)
+        lat_range = radius / 111.0  # 1 degree ≈ 111 km
+        lon_range = radius / (111.0 * abs(lat / 90.0)) if lat != 0 else radius / 111.0
+        
+        filter_query["lat"] = {"$gte": lat - lat_range, "$lte": lat + lat_range}
+        filter_query["lon"] = {"$gte": lon - lon_range, "$lte": lon + lon_range}
+
     if random_order:
         # Get random listings
         pipeline = [
-            {"$match": {"is_published": True}},
+            {"$match": filter_query},
             {"$sample": {"size": limit}}
         ]
         listings = await db.listings.aggregate(pipeline).to_list(length=None)
     else:
-        listings = await db.listings.find(
-            {"is_published": True}
-        ).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
+        listings = await db.listings.find(filter_query).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
     
     # Add likes and comments count
     for listing in listings:
