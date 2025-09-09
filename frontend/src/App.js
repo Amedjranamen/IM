@@ -244,6 +244,117 @@ const Header = ({ searchQuery, setSearchQuery, onSearch, showFilters, setShowFil
   );
 };
 
+// Filters Component
+const FiltersPanel = ({ filters, setFilters, onApplyFilters, cities, neighborhoods }) => {
+  const resetFilters = () => {
+    setFilters({
+      city: '',
+      neighborhood: '',
+      listing_type: '',
+      price_min: '',
+      price_max: '',
+      surface_min: '',
+      surface_max: '',
+      rooms_min: '',
+      rooms_max: ''
+    });
+  };
+
+  return (
+    <div className="bg-white border-b border-gray-200 px-4 py-4">
+      <div className="container mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div>
+            <Label className="text-xs text-gray-600">Ville</Label>
+            <Select value={filters.city} onValueChange={(value) => setFilters({...filters, city: value})}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Toutes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Toutes les villes</SelectItem>
+                {cities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-xs text-gray-600">Quartier</Label>
+            <Select value={filters.neighborhood} onValueChange={(value) => setFilters({...filters, neighborhood: value})}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Tous" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Tous les quartiers</SelectItem>
+                {neighborhoods.map(neighborhood => (
+                  <SelectItem key={neighborhood} value={neighborhood}>{neighborhood}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-xs text-gray-600">Type</Label>
+            <Select value={filters.listing_type} onValueChange={(value) => setFilters({...filters, listing_type: value})}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Tous" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Tous</SelectItem>
+                <SelectItem value="sale">Vente</SelectItem>
+                <SelectItem value="rent">Location</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-xs text-gray-600">Prix min</Label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={filters.price_min}
+              onChange={(e) => setFilters({...filters, price_min: e.target.value})}
+              className="h-9"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs text-gray-600">Prix max</Label>
+            <Input
+              type="number"
+              placeholder="∞"
+              value={filters.price_max}
+              onChange={(e) => setFilters({...filters, price_max: e.target.value})}
+              className="h-9"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs text-gray-600">Surface min</Label>
+            <Input
+              type="number"
+              placeholder="0 m²"
+              value={filters.surface_min}
+              onChange={(e) => setFilters({...filters, surface_min: e.target.value})}
+              className="h-9"
+            />
+          </div>
+
+          <div className="flex items-end space-x-2">
+            <Button onClick={onApplyFilters} className="bg-orange-500 hover:bg-orange-600 h-9">
+              Rechercher
+            </Button>
+            <Button variant="outline" onClick={resetFilters} className="h-9">
+              Réinitialiser
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LoginDialog = ({ onClose }) => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -374,15 +485,37 @@ const RegisterDialog = ({ onClose }) => {
 };
 
 const PublishDialog = ({ onClose }) => {
+  const [step, setStep] = useState(1);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [listingType, setListingType] = useState('sale');
   const [price, setPrice] = useState('');
   const [city, setCity] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
+  const [address, setAddress] = useState('');
   const [surface, setSurface] = useState('');
   const [rooms, setRooms] = useState('');
+  const [placedMarker, setPlacedMarker] = useState(null);
+  const [isPlacingMarker, setIsPlacingMarker] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const handleMapClick = async (latlng) => {
+    setPlacedMarker(latlng);
+    setIsPlacingMarker(false);
+    
+    // Reverse geocode to get address info
+    try {
+      const response = await axios.get(`${API}/reverse-geocode?lat=${latlng.lat}&lon=${latlng.lng}`);
+      const data = response.data;
+      setCity(data.city || '');
+      setNeighborhood(data.neighborhood || '');
+      setAddress(data.address || '');
+      toast.success('Localisation définie ! Informations automatiquement remplies.');
+    } catch (error) {
+      console.error('Reverse geocoding failed:', error);
+      toast.error('Impossible de récupérer les informations de localisation');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -396,6 +529,9 @@ const PublishDialog = ({ onClose }) => {
         price: parseFloat(price),
         city,
         neighborhood,
+        address,
+        lat: placedMarker?.lat || null,
+        lon: placedMarker?.lng || null,
         surface: surface ? parseInt(surface) : null,
         rooms: rooms ? parseInt(rooms) : null
       });
@@ -411,122 +547,188 @@ const PublishDialog = ({ onClose }) => {
   };
 
   return (
-    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Publier une annonce</DialogTitle>
+        <DialogTitle>Déposer une annonce</DialogTitle>
         <DialogDescription>
-          Remplissez les informations de votre bien immobilier
+          {step === 1 ? 'Remplissez les informations de votre bien' : 'Localisez votre bien sur la carte'}
         </DialogDescription>
       </DialogHeader>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="title">Titre de l'annonce</Label>
-          <Input
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ex: Belle villa avec piscine"
-            required
-          />
-        </div>
 
-        <div>
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Décrivez votre bien..."
-            rows={4}
-            required
-          />
-        </div>
+      {step === 1 ? (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <Label htmlFor="title">Titre de l'annonce *</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Belle villa avec piscine à Libreville"
+                required
+              />
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="type">Type</Label>
-            <Select value={listingType} onValueChange={setListingType}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sale">Vente</SelectItem>
-                <SelectItem value="rent">Location</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="md:col-span-2">
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Décrivez votre bien en détail..."
+                rows={4}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="type">Type d'annonce *</Label>
+              <Select value={listingType} onValueChange={setListingType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sale">Vente</SelectItem>
+                  <SelectItem value="rent">Location</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="price">Prix (XAF) *</Label>
+              <Input
+                id="price"
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="Ex: 50000000"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="city">Ville *</Label>
+              <Input
+                id="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Ex: Libreville"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="neighborhood">Quartier</Label>
+              <Input
+                id="neighborhood"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+                placeholder="Ex: Batterie IV"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="surface">Surface (m²)</Label>
+              <Input
+                id="surface"
+                type="number"
+                value={surface}
+                onChange={(e) => setSurface(e.target.value)}
+                placeholder="Ex: 150"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="rooms">Nombre de pièces</Label>
+              <Input
+                id="rooms"
+                type="number"
+                value={rooms}
+                onChange={(e) => setRooms(e.target.value)}
+                placeholder="Ex: 4"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label htmlFor="address">Adresse complète</Label>
+              <Input
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Adresse détaillée (remplie automatiquement avec la carte)"
+              />
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="price">Prix (XAF)</Label>
-            <Input
-              id="price"
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
+          <div className="flex justify-between pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setStep(2)}
+              className="flex items-center"
+            >
+              <MapIcon className="w-4 h-4 mr-2" />
+              Localiser sur la carte
+            </Button>
+            
+            <div className="space-x-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Publication...' : 'Publier l\'annonce'}
+              </Button>
+            </div>
+          </div>
+        </form>
+      ) : (
+        <div className="space-y-4">
+          <div className="h-96">
+            <Map
+              onMapClick={handleMapClick}
+              isPlacingMarker={isPlacingMarker}
+              placedMarker={placedMarker}
+              height="100%"
             />
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="city">Ville</Label>
-            <Input
-              id="city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Ex: Libreville"
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="neighborhood">Quartier</Label>
-            <Input
-              id="neighborhood"
-              value={neighborhood}
-              onChange={(e) => setNeighborhood(e.target.value)}
-              placeholder="Ex: Batterie IV"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="surface">Surface (m²)</Label>
-            <Input
-              id="surface"
-              type="number"
-              value={surface}
-              onChange={(e) => setSurface(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="rooms">Nombre de pièces</Label>
-            <Input
-              id="rooms"
-              type="number"
-              value={rooms}
-              onChange={(e) => setRooms(e.target.value)}
-            />
+          
+          <div className="flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setStep(1)}
+            >
+              ← Retour au formulaire
+            </Button>
+            
+            <div className="space-x-2">
+              <Button
+                type="button"
+                onClick={() => setIsPlacingMarker(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <MapIcon className="w-4 h-4 mr-2" />
+                Placer un marqueur
+              </Button>
+              
+              {placedMarker && (
+                <Button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Confirmer la localisation
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Publication...' : 'Publier'}
-          </Button>
-        </DialogFooter>
-      </form>
+      )}
     </DialogContent>
   );
 };
 
-const ListingCard = ({ listing }) => {
+const ListingCard = ({ listing, onMarkerClick }) => {
   const { user } = useAuth();
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(listing.likes_count || 0);
@@ -606,107 +808,134 @@ const ListingCard = ({ listing }) => {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-        <HomeIcon className="w-16 h-16 text-blue-400" />
-      </div>
-
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg line-clamp-2">{listing.title}</CardTitle>
-          <Badge variant={listing.listing_type === 'sale' ? 'default' : 'secondary'}>
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-gray-200">
+      {/* Image placeholder - leboncoin style */}
+      <div className="aspect-[4/3] bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center relative">
+        <HomeIcon className="w-16 h-16 text-orange-400" />
+        <div className="absolute top-2 right-2">
+          <Badge 
+            variant={listing.listing_type === 'sale' ? 'default' : 'secondary'}
+            className={listing.listing_type === 'sale' ? 'bg-blue-600' : 'bg-green-600'}
+          >
             {listing.listing_type === 'sale' ? 'Vente' : 'Location'}
           </Badge>
         </div>
-        <CardDescription className="line-clamp-2">
-          {listing.description}
-        </CardDescription>
-      </CardHeader>
+        {listing.lat && listing.lon && (
+          <Button
+            size="sm"
+            variant="secondary" 
+            className="absolute bottom-2 right-2 h-8 px-2"
+            onClick={() => onMarkerClick && onMarkerClick(listing)}
+          >
+            <MapIcon className="w-3 h-3 mr-1" />
+            Carte
+          </Button>
+        )}
+      </div>
 
-      <CardContent className="space-y-3">
-        <div className="text-2xl font-bold text-blue-600">
-          {formatPrice(listing.price)}
-        </div>
-
-        <div className="flex items-center text-sm text-gray-600">
-          <MapPin className="w-4 h-4 mr-1" />
-          {listing.city}{listing.neighborhood && `, ${listing.neighborhood}`}
-        </div>
-
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex space-x-4">
-            {listing.surface && (
-              <span>{listing.surface} m²</span>
-            )}
-            {listing.rooms && (
-              <span>{listing.rooms} pièces</span>
-            )}
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-semibold text-lg line-clamp-2 text-gray-900">
+              {listing.title}
+            </h3>
+            <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+              {listing.description}
+            </p>
           </div>
-          <span>{formatDate(listing.created_at)}</span>
-        </div>
 
-        <Separator />
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleLike}
-              className={`flex items-center space-x-1 ${liked ? 'text-red-500' : 'text-gray-500'}`}
-            >
-              <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
-              <span>{likesCount}</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={loadComments}
-              className="flex items-center space-x-1 text-gray-500"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>{listing.comments_count || 0}</span>
-            </Button>
+          <div className="text-2xl font-bold text-orange-600">
+            {formatPrice(listing.price)}
           </div>
 
           <div className="flex items-center text-sm text-gray-600">
-            <User className="w-4 h-4 mr-1" />
-            {listing.owner_name}
+            <MapPin className="w-4 h-4 mr-1 text-orange-500" />
+            <span className="font-medium">
+              {listing.city}{listing.neighborhood && `, ${listing.neighborhood}`}
+            </span>
           </div>
-        </div>
 
-        {showComments && (
-          <div className="space-y-3 pt-3 border-t">
-            {user && (
-              <form onSubmit={addComment} className="flex space-x-2">
-                <Input
-                  placeholder="Ajouter un commentaire..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" size="sm" disabled={!newComment.trim()}>
-                  Envoyer
-                </Button>
-              </form>
-            )}
+          <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
+            <div className="flex space-x-4">
+              {listing.surface && (
+                <span className="flex items-center">
+                  📐 {listing.surface} m²
+                </span>
+              )}
+              {listing.rooms && (
+                <span className="flex items-center">
+                  🚪 {listing.rooms} pièces
+                </span>
+              )}
+            </div>
+            <span>{formatDate(listing.created_at)}</span>
+          </div>
 
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {comments.map((comment) => (
-                <div key={comment.id} className="text-sm">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-medium">{comment.author_name}</span>
-                    <span className="text-gray-400 text-xs">
-                      {formatDate(comment.created_at)}
-                    </span>
-                  </div>
-                  <p className="text-gray-700">{comment.text}</p>
-                </div>
-              ))}
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleLike}
+                className={`flex items-center space-x-1 ${
+                  liked ? 'text-red-500 hover:text-red-600' : 'text-gray-500 hover:text-red-500'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+                <span>{likesCount}</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={loadComments}
+                className="flex items-center space-x-1 text-gray-500 hover:text-blue-500"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>{listing.comments_count || 0}</span>
+              </Button>
+            </div>
+
+            <div className="flex items-center text-sm text-gray-600">
+              <User className="w-4 h-4 mr-1" />
+              <span className="font-medium">{listing.owner_name}</span>
             </div>
           </div>
-        )}
+
+          {showComments && (
+            <div className="space-y-3 pt-3 border-t border-gray-100">
+              {user && (
+                <form onSubmit={addComment} className="flex space-x-2">
+                  <Input
+                    placeholder="Ajouter un commentaire..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="sm" disabled={!newComment.trim()}>
+                    Envoyer
+                  </Button>
+                </form>
+              )}
+
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="text-sm">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-medium">{comment.author_name}</span>
+                      <span className="text-gray-400 text-xs">
+                        {formatDate(comment.created_at)}
+                      </span>
+                    </div>
+                    <p className="text-gray-700">{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -715,14 +944,40 @@ const ListingCard = ({ listing }) => {
 const Home = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [selectedListing, setSelectedListing] = useState(null);
+  const [cities, setCities] = useState([]);
+  const [neighborhoods, setNeighborhoods] = useState([]);
+  const [filters, setFilters] = useState({
+    city: '',
+    neighborhood: '',
+    listing_type: '',
+    price_min: '',
+    price_max: '',
+    surface_min: '',
+    surface_max: '',
+    rooms_min: '',
+    rooms_max: ''
+  });
 
   useEffect(() => {
     fetchListings();
+    fetchCities();
+    fetchNeighborhoods();
   }, []);
 
-  const fetchListings = async () => {
+  const fetchListings = async (searchParams = {}) => {
+    setLoading(true);
     try {
-      const response = await axios.get(`${API}/listings?random_order=true&limit=12`);
+      const params = {
+        random_order: true,
+        limit: 20,
+        ...searchParams
+      };
+      
+      const response = await axios.get(`${API}/listings`, { params });
       setListings(response.data);
     } catch (error) {
       console.error('Error fetching listings:', error);
@@ -732,19 +987,63 @@ const Home = () => {
     }
   };
 
+  const fetchCities = async () => {
+    try {
+      const response = await axios.get(`${API}/cities`);
+      setCities(response.data);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+    }
+  };
+
+  const fetchNeighborhoods = async () => {
+    try {
+      const response = await axios.get(`${API}/neighborhoods`);
+      setNeighborhoods(response.data);
+    } catch (error) {
+      console.error('Error fetching neighborhoods:', error);
+    }
+  };
+
+  const handleSearch = () => {
+    const searchParams = {
+      search: searchQuery || undefined,
+      ...Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== '')
+      )
+    };
+    fetchListings(searchParams);
+  };
+
+  const handleApplyFilters = () => {
+    handleSearch();
+  };
+
+  const handleMarkerClick = (listing) => {
+    setSelectedListing(listing);
+    setShowMap(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <Header 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+        />
         <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
               <Card key={i} className="animate-pulse">
-                <div className="aspect-video bg-gray-200"></div>
-                <CardHeader>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </CardHeader>
+                <div className="aspect-[4/3] bg-gray-200"></div>
+                <CardContent className="p-4">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+                </CardContent>
               </Card>
             ))}
           </div>
@@ -755,44 +1054,114 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={handleSearch}
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+      />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Découvrez les meilleures offres immobilières au Gabon
-          </h2>
-          <p className="text-lg text-gray-600">
-            Trouvez votre bien idéal parmi nos annonces vérifiées
-          </p>
+      {showFilters && (
+        <FiltersPanel
+          filters={filters}
+          setFilters={setFilters}
+          onApplyFilters={handleApplyFilters}
+          cities={cities}
+          neighborhoods={neighborhoods}
+        />
+      )}
+
+      <main className="container mx-auto px-4 py-6">
+        {/* Results header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {listings.length} annonce{listings.length > 1 ? 's' : ''} trouvée{listings.length > 1 ? 's' : ''}
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMap(!showMap)}
+              className="flex items-center"
+            >
+              <MapIcon className="w-4 h-4 mr-2" />
+              {showMap ? 'Masquer la carte' : 'Voir sur la carte'}
+            </Button>
+          </div>
+          
+          <Button
+            onClick={() => fetchListings()}
+            variant="outline"
+            size="sm"
+          >
+            🔄 Actualiser
+          </Button>
         </div>
 
+        {showMap && (
+          <div className="mb-6">
+            <Map
+              listings={listings}
+              onMarkerClick={setSelectedListing}
+              height="400px"
+              className="rounded-lg border border-gray-200"
+            />
+          </div>
+        )}
+
         {listings.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-16">
             <HomeIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">
-              Aucune annonce disponible
+              Aucune annonce trouvée
             </h3>
-            <p className="text-gray-500">
-              Soyez le premier à publier une annonce !
+            <p className="text-gray-500 mb-4">
+              Essayez de modifier vos critères de recherche
             </p>
+            <Button 
+              onClick={() => {
+                setSearchQuery('');
+                setFilters({
+                  city: '',
+                  neighborhood: '',
+                  listing_type: '',
+                  price_min: '',
+                  price_max: '',
+                  surface_min: '',
+                  surface_max: '',
+                  rooms_min: '',
+                  rooms_max: ''
+                });
+                fetchListings();
+              }}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              Voir toutes les annonces
+            </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+              <ListingCard 
+                key={listing.id} 
+                listing={listing} 
+                onMarkerClick={handleMarkerClick}
+              />
             ))}
           </div>
         )}
 
-        <div className="text-center mt-12">
-          <Button 
-            onClick={fetchListings}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Voir plus d'annonces
-          </Button>
-        </div>
+        {listings.length > 0 && (
+          <div className="text-center mt-8">
+            <Button 
+              onClick={() => fetchListings()}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              Voir plus d'annonces
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -807,7 +1176,7 @@ function App() {
             <Route path="/" element={<Home />} />
           </Routes>
         </BrowserRouter>
-        <Toaster position="top-right" />
+        <Toaster position="top-right" richColors />
       </div>
     </AuthProvider>
   );
