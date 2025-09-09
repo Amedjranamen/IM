@@ -701,7 +701,7 @@ const Home = () => {
 
         {listings.length === 0 ? (
           <div className="text-center py-12">
-            <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <HomeIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">
               Aucune annonce disponible
             </h3>
