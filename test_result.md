@@ -280,16 +280,19 @@ frontend:
         comment: "Need map integration in publish form for placing markers"
 
   - task: "Image upload in listings"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "App.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Need image upload functionality in publish form"
+      - working: true
+        agent: "main"
+        comment: "Complete image/video upload in publish form with preview, 10 files max, drag&drop interface"
 
 metadata:
   created_by: "main_agent"
