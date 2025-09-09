@@ -101,3 +101,203 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Créer une copie de leboncoin pour l'immobilier au Gabon (IMMO&CO) avec FastAPI/React/MongoDB.
+  Fonctionnalités requises:
+  - Publier/modifier/supprimer des biens immobiliers (vente/location)
+  - Commenter et liker les annonces
+  - Recherche simple et avancée par villes/quartiers du Gabon
+  - Intégration OpenStreetMap (OSM) + Leaflet.js pour recherche cartographique
+  - Publication via placement sur la carte avec géocodage
+  - Flux d'actualité aléatoire
+
+backend:
+  - task: "Authentication system (JWT)"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main" 
+        comment: "JWT authentication with register/login/me endpoints working"
+
+  - task: "Listings CRUD endpoints"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Create, read, update, delete listings with owner validation working"
+
+  - task: "Comments system"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Comments CRUD with authorization working"
+
+  - task: "Likes system"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Like/unlike toggle functionality working"
+
+  - task: "Image upload system"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Image upload endpoints not implemented yet"
+
+  - task: "Advanced search with filters"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need search filters for price, surface, rooms, city, type"
+
+  - task: "Nominatim proxy for geocoding"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need proxy endpoints for geocoding and reverse geocoding"
+
+frontend:
+  - task: "Authentication UI (login/register)"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Login and register modals working with auth context"
+
+  - task: "Listings display with cards"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Listing cards with like/comment functionality working"
+
+  - task: "Publish listing form"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Basic listing creation form working"
+
+  - task: "Leaflet map integration"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to add Leaflet.js for map functionality"
+
+  - task: "Advanced search interface"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need advanced search form with filters"
+
+  - task: "Map-based publishing"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need map integration in publish form for placing markers"
+
+  - task: "Image upload in listings"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need image upload functionality in publish form"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Nominatim proxy for geocoding"
+    - "Leaflet map integration"
+    - "Map-based publishing"
+    - "Advanced search with filters"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Application de base fonctionnelle avec auth, CRUD listings, comments, likes. Prêt à ajouter fonctionnalités cartographiques et recherche avancée."
