@@ -497,6 +497,172 @@ async def get_neighborhoods(city: Optional[str] = Query(None)):
     neighborhoods = await db.listings.distinct("neighborhood", filter_query)
     return sorted([neighborhood for neighborhood in neighborhoods if neighborhood])
 
+# Image upload endpoints
+@api_router.post("/listings/{listing_id}/images")
+async def upload_listing_images(
+    listing_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    # Check if listing exists and user owns it
+    listing = await db.listings.find_one({"id": listing_id})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    if listing["owner_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Check file count limit (max 10)
+    current_images = listing.get("images", [])
+    if len(current_images) + len(files) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 files allowed per listing")
+    
+    uploaded_files = []
+    
+    for file in files:
+        # Validate file type and size
+        if file.content_type not in ["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"]:
+            raise HTTPException(status_code=400, detail=f"File type {file.content_type} not allowed")
+        
+        # Check file size (max 10MB)
+        file.file.seek(0, 2)  # Seek to end
+        file_size = file.file.tell()
+        file.file.seek(0)  # Reset to beginning
+        
+        if file_size > 10 * 1024 * 1024:  # 10MB
+            raise HTTPException(status_code=400, detail="File size too large (max 10MB)")
+        
+        # Generate unique filename
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        filename = f"{listing_id}_{uuid.uuid4()}.{file_extension}"
+        file_path = UPLOAD_DIR / filename
+        
+        # Save file
+        async with aiofiles.open(file_path, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+        
+        uploaded_files.append(filename)
+    
+    # Update listing with new images
+    updated_images = current_images + uploaded_files
+    await db.listings.update_one(
+        {"id": listing_id}, 
+        {"$set": {"images": updated_images, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    return {"message": f"{len(files)} files uploaded successfully", "images": uploaded_files}
+
+@api_router.delete("/listings/{listing_id}/images/{filename}")
+async def delete_listing_image(
+    listing_id: str, 
+    filename: str, 
+    current_user: User = Depends(get_current_user)
+):
+    # Check if listing exists and user owns it
+    listing = await db.listings.find_one({"id": listing_id})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    if listing["owner_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Remove from database
+    updated_images = [img for img in listing.get("images", []) if img != filename]
+    await db.listings.update_one(
+        {"id": listing_id}, 
+        {"$set": {"images": updated_images, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    # Delete file
+    file_path = UPLOAD_DIR / filename
+    if file_path.exists():
+        file_path.unlink()
+    
+    return {"message": "Image deleted successfully"}
+
+# User favorites endpoints
+@api_router.post("/favorites/{listing_id}")
+async def add_favorite(listing_id: str, current_user: User = Depends(get_current_user)):
+    # Check if listing exists
+    listing = await db.listings.find_one({"id": listing_id})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # Check if already favorited
+    existing_favorite = await db.favorites.find_one({
+        "listing_id": listing_id, 
+        "user_id": current_user.id
+    })
+    
+    if existing_favorite:
+        raise HTTPException(status_code=400, detail="Already in favorites")
+    
+    # Add to favorites
+    favorite = {
+        "id": str(uuid.uuid4()),
+        "listing_id": listing_id,
+        "user_id": current_user.id,
+        "created_at": datetime.now(timezone.utc)
+    }
+    
+    await db.favorites.insert_one(favorite)
+    return {"message": "Added to favorites"}
+
+@api_router.delete("/favorites/{listing_id}")
+async def remove_favorite(listing_id: str, current_user: User = Depends(get_current_user)):
+    result = await db.favorites.delete_one({
+        "listing_id": listing_id,
+        "user_id": current_user.id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Favorite not found")
+    
+    return {"message": "Removed from favorites"}
+
+@api_router.get("/favorites")
+async def get_user_favorites(current_user: User = Depends(get_current_user)):
+    favorites = await db.favorites.find({"user_id": current_user.id}).to_list(length=None)
+    listing_ids = [fav["listing_id"] for fav in favorites]
+    
+    if not listing_ids:
+        return []
+    
+    # Get listings
+    listings = await db.listings.find({"id": {"$in": listing_ids}, "is_published": True}).to_list(length=None)
+    
+    # Add counts for each listing
+    for listing in listings:
+        likes_count = await db.likes.count_documents({"listing_id": listing["id"]})
+        comments_count = await db.comments.count_documents({"listing_id": listing["id"]})
+        listing["likes_count"] = likes_count
+        listing["comments_count"] = comments_count
+    
+    return [Listing(**listing) for listing in listings]
+
+@api_router.get("/favorites/{listing_id}/check")
+async def check_favorite(listing_id: str, current_user: User = Depends(get_current_user)):
+    favorite = await db.favorites.find_one({
+        "listing_id": listing_id,
+        "user_id": current_user.id
+    })
+    return {"is_favorite": favorite is not None}
+
+# User's own listings
+@api_router.get("/my-listings")
+async def get_my_listings(current_user: User = Depends(get_current_user)):
+    listings = await db.listings.find({"owner_id": current_user.id}).sort("created_at", -1).to_list(length=None)
+    
+    # Add counts for each listing
+    for listing in listings:
+        likes_count = await db.likes.count_documents({"listing_id": listing["id"]})
+        comments_count = await db.comments.count_documents({"listing_id": listing["id"]})
+        listing["likes_count"] = likes_count
+        listing["comments_count"] = comments_count
+    
+    return [Listing(**listing) for listing in listings]
+
 # Include the router in the main app
 app.include_router(api_router)
 
