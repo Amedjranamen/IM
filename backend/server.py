@@ -414,6 +414,89 @@ async def check_if_liked(listing_id: str, current_user: User = Depends(get_curre
     like = await db.likes.find_one({"listing_id": listing_id, "user_id": current_user.id})
     return {"liked": like is not None}
 
+# Geocoding endpoints
+@api_router.get("/geocode")
+async def geocode_address(q: str = Query(..., description="Address or place to geocode")):
+    """Proxy for Nominatim search to avoid CORS issues and rate limiting"""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={
+                    "q": q,
+                    "format": "json",
+                    "addressdetails": 1,
+                    "limit": 10,
+                    "countrycodes": "ga",  # Restrict to Gabon
+                    "accept-language": "fr"
+                },
+                headers={
+                    "User-Agent": "IMMO&CO/1.0 (immobilier@gabon.com)"
+                },
+                timeout=10.0
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPError as e:
+            logger.error(f"Geocoding error: {e}")
+            raise HTTPException(status_code=500, detail="Geocoding service unavailable")
+
+@api_router.get("/reverse-geocode")
+async def reverse_geocode(
+    lat: float = Query(..., description="Latitude"),
+    lon: float = Query(..., description="Longitude")
+):
+    """Reverse geocode coordinates to address"""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                "https://nominatim.openstreetmap.org/reverse",
+                params={
+                    "lat": lat,
+                    "lon": lon,
+                    "format": "json",
+                    "addressdetails": 1,
+                    "accept-language": "fr"
+                },
+                headers={
+                    "User-Agent": "IMMO&CO/1.0 (immobilier@gabon.com)"
+                },
+                timeout=10.0
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            # Extract relevant address components for Gabon
+            address = data.get("address", {})
+            result = {
+                "city": address.get("city") or address.get("town") or address.get("village") or address.get("state"),
+                "neighborhood": address.get("suburb") or address.get("neighbourhood") or address.get("quarter"),
+                "address": data.get("display_name", ""),
+                "lat": lat,
+                "lon": lon
+            }
+            
+            return result
+        except httpx.HTTPError as e:
+            logger.error(f"Reverse geocoding error: {e}")
+            raise HTTPException(status_code=500, detail="Reverse geocoding service unavailable")
+
+@api_router.get("/cities")
+async def get_cities():
+    """Get list of cities from existing listings"""
+    cities = await db.listings.distinct("city", {"is_published": True, "city": {"$ne": None}})
+    return sorted([city for city in cities if city])
+
+@api_router.get("/neighborhoods")
+async def get_neighborhoods(city: Optional[str] = Query(None)):
+    """Get list of neighborhoods, optionally filtered by city"""
+    filter_query = {"is_published": True, "neighborhood": {"$ne": None}}
+    if city:
+        filter_query["city"] = city
+    
+    neighborhoods = await db.listings.distinct("neighborhood", filter_query)
+    return sorted([neighborhood for neighborhood in neighborhoods if neighborhood])
+
 # Include the router in the main app
 app.include_router(api_router)
 
