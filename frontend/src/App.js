@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from './components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { toast, Toaster } from 'sonner';
-import { Heart, MapPin, Home, Phone, Mail, User, Plus, MessageCircle, Search, LogOut, LogIn } from 'lucide-react';
+import { Heart, MapPin, Home as HomeIcon, Phone, Mail, User, Plus, MessageCircle, Search, LogOut, LogIn } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
