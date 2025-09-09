@@ -518,6 +518,26 @@ class ImmoCoAPITester:
         self.test_add_comment()
         self.test_get_comments()
 
+        # Favorites system tests (NEW)
+        print("\n⭐ FAVORITES SYSTEM TESTS")
+        self.test_add_favorite()
+        self.test_check_favorite_status()
+        self.test_get_user_favorites()
+        self.test_remove_favorite()
+
+        # User listings management tests (NEW)
+        print("\n👤 USER LISTINGS MANAGEMENT TESTS")
+        self.test_get_my_listings()
+
+        # Image upload tests (NEW)
+        print("\n📸 IMAGE UPLOAD TESTS")
+        self.test_image_upload_validation()
+        self.test_delete_nonexistent_image()
+
+        # Security tests (NEW)
+        print("\n🔒 SECURITY TESTS")
+        self.test_unauthorized_access()
+
         # Error handling tests
         print("\n⚠️ ERROR HANDLING TESTS")
         self.test_invalid_endpoints()
