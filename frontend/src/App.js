@@ -103,74 +103,141 @@ const useAuth = () => {
 };
 
 // Components
-const Header = () => {
+const Header = ({ searchQuery, setSearchQuery, onSearch, showFilters, setShowFilters }) => {
   const { user, logout } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
 
-  return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            IMMO&CO
-          </h1>
-        </div>
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    onSearch();
+  };
 
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Rechercher une ville, quartier..."
-              className="pl-10 bg-gray-50 border-0 focus:bg-white transition-colors"
-            />
+  return (
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+      {/* Top bar */}
+      <div className="bg-orange-500 text-white text-xs py-1">
+        <div className="container mx-auto px-4 text-center">
+          🏠 IMMO&CO - La plateforme immobilière du Gabon
+        </div>
+      </div>
+
+      {/* Main header */}
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <div className="bg-orange-500 p-2 rounded-lg">
+              <HomeIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">IMMO&CO</h1>
+              <p className="text-xs text-gray-500">Immobilier Gabon</p>
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div className="flex-1 max-w-xl mx-8">
+            <form onSubmit={handleSearchSubmit} className="flex items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher une ville, quartier, type de bien..."
+                  className="pl-10 pr-4 py-2 border-2 border-gray-200 rounded-l-md focus:border-orange-500 focus:ring-0"
+                />
+              </div>
+              <Button 
+                type="submit"
+                className="bg-orange-500 hover:bg-orange-600 px-6 rounded-l-none border-2 border-orange-500"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+            </form>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="border-gray-300"
+            >
+              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              Filtres
+            </Button>
+
+            {user ? (
+              <>
+                <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Déposer une annonce
+                    </Button>
+                  </DialogTrigger>
+                  <PublishDialog onClose={() => setPublishOpen(false)} />
+                </Dialog>
+
+                <div className="flex items-center space-x-2 border-l border-gray-200 pl-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+                      {user.name[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden md:block">
+                    <p className="text-sm font-medium text-gray-700">{user.name}</p>
+                    <button 
+                      onClick={logout}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Se déconnecter
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Se connecter
+                    </Button>
+                  </DialogTrigger>
+                  <LoginDialog onClose={() => setLoginOpen(false)} />
+                </Dialog>
+
+                <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      S'inscrire
+                    </Button>
+                  </DialogTrigger>
+                  <RegisterDialog onClose={() => setRegisterOpen(false)} />
+                </Dialog>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          {user ? (
-            <>
-              <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Publier
-                  </Button>
-                </DialogTrigger>
-                <PublishDialog onClose={() => setPublishOpen(false)} />
-              </Dialog>
-
-              <div className="flex items-center space-x-2">
-                <Avatar>
-                  <AvatarFallback>{user.name[0]}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium">{user.name}</span>
-                <Button variant="ghost" size="sm" onClick={logout}>
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Connexion
-                  </Button>
-                </DialogTrigger>
-                <LoginDialog onClose={() => setLoginOpen(false)} />
-              </Dialog>
-
-              <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
-                <DialogTrigger asChild>
-                  <Button>Inscription</Button>
-                </DialogTrigger>
-                <RegisterDialog onClose={() => setRegisterOpen(false)} />
-              </Dialog>
-            </div>
-          )}
+        {/* Secondary navigation */}
+        <div className="flex items-center space-x-6 mt-3 pt-3 border-t border-gray-100">
+          <button className="text-sm text-gray-600 hover:text-orange-500 font-medium">
+            🏠 Vente
+          </button>
+          <button className="text-sm text-gray-600 hover:text-orange-500 font-medium">
+            🔑 Location
+          </button>
+          <button className="text-sm text-gray-600 hover:text-orange-500 font-medium">
+            🗺️ Carte
+          </button>
+          <button className="text-sm text-gray-600 hover:text-orange-500 font-medium">
+            💰 Estimer mon bien
+          </button>
         </div>
       </div>
     </header>
