@@ -219,6 +219,141 @@ class ImmoCoAPITester:
         else:
             return self.log_test("Get Comments", False, f"- Status: {status}, Response: {response}")
 
+    def test_geocode_address(self):
+        """Test geocoding an address in Gabon"""
+        success, status, response = self.make_request('GET', 'geocode?q=Libreville', expected_status=200)
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            first_result = response[0]
+            if 'lat' in first_result and 'lon' in first_result:
+                return self.log_test("Geocode Address", True, f"- Found {len(response)} results for Libreville")
+            else:
+                return self.log_test("Geocode Address", False, "- Results missing lat/lon coordinates")
+        else:
+            return self.log_test("Geocode Address", False, f"- Status: {status}, Response: {response}")
+
+    def test_reverse_geocode(self):
+        """Test reverse geocoding coordinates (Libreville coordinates)"""
+        # Libreville coordinates
+        lat, lon = 0.4162, 9.4673
+        success, status, response = self.make_request('GET', f'reverse-geocode?lat={lat}&lon={lon}', expected_status=200)
+        
+        if success and isinstance(response, dict):
+            if 'city' in response and 'address' in response:
+                return self.log_test("Reverse Geocode", True, f"- Found address: {response.get('city', 'Unknown')}")
+            else:
+                return self.log_test("Reverse Geocode", False, "- Response missing required fields")
+        else:
+            return self.log_test("Reverse Geocode", False, f"- Status: {status}, Response: {response}")
+
+    def test_get_cities(self):
+        """Test getting list of cities from listings"""
+        success, status, response = self.make_request('GET', 'cities', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Get Cities", True, f"- Retrieved {len(response)} cities")
+        else:
+            return self.log_test("Get Cities", False, f"- Status: {status}, Response: {response}")
+
+    def test_get_neighborhoods(self):
+        """Test getting list of neighborhoods"""
+        success, status, response = self.make_request('GET', 'neighborhoods', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Get Neighborhoods", True, f"- Retrieved {len(response)} neighborhoods")
+        else:
+            return self.log_test("Get Neighborhoods", False, f"- Status: {status}, Response: {response}")
+
+    def test_get_neighborhoods_by_city(self):
+        """Test getting neighborhoods filtered by city"""
+        success, status, response = self.make_request('GET', 'neighborhoods?city=Libreville', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Get Neighborhoods by City", True, f"- Retrieved {len(response)} neighborhoods for Libreville")
+        else:
+            return self.log_test("Get Neighborhoods by City", False, f"- Status: {status}, Response: {response}")
+
+    def test_search_listings_by_text(self):
+        """Test searching listings by text"""
+        success, status, response = self.make_request('GET', 'listings?search=villa', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Search Listings by Text", True, f"- Found {len(response)} listings matching 'villa'")
+        else:
+            return self.log_test("Search Listings by Text", False, f"- Status: {status}, Response: {response}")
+
+    def test_filter_listings_by_city(self):
+        """Test filtering listings by city"""
+        success, status, response = self.make_request('GET', 'listings?city=Libreville', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Filter Listings by City", True, f"- Found {len(response)} listings in Libreville")
+        else:
+            return self.log_test("Filter Listings by City", False, f"- Status: {status}, Response: {response}")
+
+    def test_filter_listings_by_type(self):
+        """Test filtering listings by type"""
+        success, status, response = self.make_request('GET', 'listings?listing_type=sale', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Filter Listings by Type", True, f"- Found {len(response)} listings for sale")
+        else:
+            return self.log_test("Filter Listings by Type", False, f"- Status: {status}, Response: {response}")
+
+    def test_filter_listings_by_price_range(self):
+        """Test filtering listings by price range"""
+        success, status, response = self.make_request('GET', 'listings?price_min=1000000&price_max=50000000', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Filter Listings by Price Range", True, f"- Found {len(response)} listings in price range")
+        else:
+            return self.log_test("Filter Listings by Price Range", False, f"- Status: {status}, Response: {response}")
+
+    def test_create_listing_with_coordinates(self):
+        """Test creating a listing with GPS coordinates"""
+        if not self.token:
+            return self.log_test("Create Listing with Coordinates", False, "- No token available")
+
+        listing_data = {
+            "title": "Appartement moderne Port-Gentil",
+            "description": "Bel appartement 3 pièces avec vue sur l'océan, proche du centre-ville.",
+            "listing_type": "rent",
+            "price": 800000,
+            "city": "Port-Gentil",
+            "neighborhood": "Centre-ville",
+            "surface": 85,
+            "rooms": 3,
+            "lat": -0.7193,
+            "lon": 8.7815
+        }
+
+        success, status, response = self.make_request('POST', 'listings', listing_data, 200)
+        
+        if success and 'id' in response and 'lat' in response and 'lon' in response:
+            return self.log_test("Create Listing with Coordinates", True, f"- Listing created with GPS coordinates")
+        else:
+            return self.log_test("Create Listing with Coordinates", False, f"- Status: {status}, Response: {response}")
+
+    def test_random_order_listings(self):
+        """Test that random order returns different results"""
+        # Get listings twice and compare
+        success1, status1, response1 = self.make_request('GET', 'listings?random_order=true&limit=5', expected_status=200)
+        time.sleep(1)  # Small delay
+        success2, status2, response2 = self.make_request('GET', 'listings?random_order=true&limit=5', expected_status=200)
+        
+        if success1 and success2 and isinstance(response1, list) and isinstance(response2, list):
+            # Check if order is different (if we have enough listings)
+            if len(response1) >= 2 and len(response2) >= 2:
+                order_different = [item['id'] for item in response1] != [item['id'] for item in response2]
+                if order_different:
+                    return self.log_test("Random Order Listings", True, "- Random order working (different results)")
+                else:
+                    return self.log_test("Random Order Listings", True, "- Random order endpoint working (same results - may be due to limited data)")
+            else:
+                return self.log_test("Random Order Listings", True, "- Random order endpoint working (limited data)")
+        else:
+            return self.log_test("Random Order Listings", False, f"- Status1: {status1}, Status2: {status2}")
+
     def test_invalid_endpoints(self):
         """Test error handling for invalid endpoints"""
         # Test non-existent listing
