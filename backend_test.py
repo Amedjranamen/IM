@@ -376,11 +376,31 @@ class ImmoCoAPITester:
         self.test_user_login()
         self.test_get_user_profile()
 
+        # Geocoding tests (NEW)
+        print("\n🌍 GEOCODING TESTS")
+        self.test_geocode_address()
+        self.test_reverse_geocode()
+
+        # Metadata tests (NEW)
+        print("\n📍 METADATA TESTS")
+        self.test_get_cities()
+        self.test_get_neighborhoods()
+        self.test_get_neighborhoods_by_city()
+
         # Listings tests
         print("\n🏠 LISTINGS TESTS")
         self.test_create_listing()
+        self.test_create_listing_with_coordinates()
         self.test_get_listings()
         self.test_get_single_listing()
+        self.test_random_order_listings()
+
+        # Advanced search tests (NEW)
+        print("\n🔍 ADVANCED SEARCH TESTS")
+        self.test_search_listings_by_text()
+        self.test_filter_listings_by_city()
+        self.test_filter_listings_by_type()
+        self.test_filter_listings_by_price_range()
 
         # Social features tests
         print("\n❤️ SOCIAL FEATURES TESTS")
