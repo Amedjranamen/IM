@@ -540,7 +540,7 @@ const ListingCard = ({ listing }) => {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-        <Home className="w-16 h-16 text-blue-400" />
+        <HomeIcon className="w-16 h-16 text-blue-400" />
       </div>
 
       <CardHeader className="pb-3">
