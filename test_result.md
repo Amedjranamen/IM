@@ -162,16 +162,19 @@ backend:
         comment: "Like/unlike toggle functionality working"
 
   - task: "Image upload system"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Image upload endpoints not implemented yet"
+      - working: true
+        agent: "main"
+        comment: "Implemented image/video upload with 10 files max limit, validation, and CRUD operations"
 
   - task: "Advanced search with filters"
     implemented: false
