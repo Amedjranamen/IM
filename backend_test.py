@@ -354,6 +354,115 @@ class ImmoCoAPITester:
         else:
             return self.log_test("Random Order Listings", False, f"- Status1: {status1}, Status2: {status2}")
 
+    def test_add_favorite(self):
+        """Test adding a listing to favorites"""
+        if not self.token or not self.created_listing_id:
+            return self.log_test("Add Favorite", False, "- Missing token or listing ID")
+
+        success, status, response = self.make_request('POST', f'favorites/{self.created_listing_id}', expected_status=200)
+        
+        if success and 'message' in response:
+            return self.log_test("Add Favorite", True, f"- {response['message']}")
+        else:
+            return self.log_test("Add Favorite", False, f"- Status: {status}, Response: {response}")
+
+    def test_check_favorite_status(self):
+        """Test checking if listing is in favorites"""
+        if not self.token or not self.created_listing_id:
+            return self.log_test("Check Favorite Status", False, "- Missing token or listing ID")
+
+        success, status, response = self.make_request('GET', f'favorites/{self.created_listing_id}/check', expected_status=200)
+        
+        if success and 'is_favorite' in response:
+            return self.log_test("Check Favorite Status", True, f"- Favorite status: {response['is_favorite']}")
+        else:
+            return self.log_test("Check Favorite Status", False, f"- Status: {status}, Response: {response}")
+
+    def test_get_user_favorites(self):
+        """Test getting user's favorite listings"""
+        if not self.token:
+            return self.log_test("Get User Favorites", False, "- No token available")
+
+        success, status, response = self.make_request('GET', 'favorites', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Get User Favorites", True, f"- Retrieved {len(response)} favorite listings")
+        else:
+            return self.log_test("Get User Favorites", False, f"- Status: {status}, Response: {response}")
+
+    def test_remove_favorite(self):
+        """Test removing a listing from favorites"""
+        if not self.token or not self.created_listing_id:
+            return self.log_test("Remove Favorite", False, "- Missing token or listing ID")
+
+        success, status, response = self.make_request('DELETE', f'favorites/{self.created_listing_id}', expected_status=200)
+        
+        if success and 'message' in response:
+            return self.log_test("Remove Favorite", True, f"- {response['message']}")
+        else:
+            return self.log_test("Remove Favorite", False, f"- Status: {status}, Response: {response}")
+
+    def test_get_my_listings(self):
+        """Test getting user's own listings"""
+        if not self.token:
+            return self.log_test("Get My Listings", False, "- No token available")
+
+        success, status, response = self.make_request('GET', 'my-listings', expected_status=200)
+        
+        if success and isinstance(response, list):
+            return self.log_test("Get My Listings", True, f"- Retrieved {len(response)} user listings")
+        else:
+            return self.log_test("Get My Listings", False, f"- Status: {status}, Response: {response}")
+
+    def test_image_upload_validation(self):
+        """Test image upload validation (without actual file upload)"""
+        if not self.token or not self.created_listing_id:
+            return self.log_test("Image Upload Validation", False, "- Missing token or listing ID")
+
+        # Test with no files (should fail)
+        url = f"{self.api_url}/listings/{self.created_listing_id}/images"
+        headers = {'Authorization': f'Bearer {self.token}'}
+        
+        try:
+            response = requests.post(url, headers=headers, files={}, timeout=10)
+            
+            # Should return 422 for validation error (no files)
+            if response.status_code == 422:
+                return self.log_test("Image Upload Validation", True, "- Properly validates missing files")
+            else:
+                return self.log_test("Image Upload Validation", False, f"- Expected 422, got {response.status_code}")
+        except Exception as e:
+            return self.log_test("Image Upload Validation", False, f"- Request error: {str(e)}")
+
+    def test_delete_nonexistent_image(self):
+        """Test deleting a non-existent image"""
+        if not self.token or not self.created_listing_id:
+            return self.log_test("Delete Nonexistent Image", False, "- Missing token or listing ID")
+
+        success, status, response = self.make_request('DELETE', f'listings/{self.created_listing_id}/images/nonexistent.jpg', expected_status=200)
+        
+        if success:
+            return self.log_test("Delete Nonexistent Image", True, "- Handles non-existent image deletion gracefully")
+        else:
+            return self.log_test("Delete Nonexistent Image", False, f"- Status: {status}, Response: {response}")
+
+    def test_unauthorized_access(self):
+        """Test unauthorized access to protected endpoints"""
+        # Save current token
+        original_token = self.token
+        self.token = None
+        
+        # Test accessing favorites without auth
+        success, status, response = self.make_request('GET', 'favorites', expected_status=401)
+        
+        # Restore token
+        self.token = original_token
+        
+        if success:
+            return self.log_test("Unauthorized Access", True, "- Properly blocks unauthorized access")
+        else:
+            return self.log_test("Unauthorized Access", False, f"- Expected 401, got {status}")
+
     def test_invalid_endpoints(self):
         """Test error handling for invalid endpoints"""
         # Test non-existent listing
