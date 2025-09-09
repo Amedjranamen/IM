@@ -349,10 +349,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Nominatim proxy for geocoding"
-    - "Leaflet map integration"
-    - "Map-based publishing"
-    - "Advanced search with filters"
+    - "Image upload system"
+    - "User favorites system"
+    - "User profile and listings management"
+    - "Complete UI redesign matching maquette"
+    - "Backend favorites and user management"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
